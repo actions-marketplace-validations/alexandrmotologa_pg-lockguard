@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { Resvg } from '@resvg/resvg-js';
+
+const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
     <!-- Background Gradient -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -180,4 +184,19 @@
   <!-- Keyhole Negative Space Detail -->
   <circle cx="512" cy="812" r="4" fill="#050811"/>
   <polygon points="510,812 514,812 516,825 508,825" fill="#050811"/>
-</svg>
+</svg>`;
+
+const resvg = new Resvg(svgContent, {
+  fitTo: {
+    mode: 'width',
+    value: 1024,
+  },
+});
+
+const pngData = resvg.render();
+const pngBuffer = pngData.asPng();
+
+fs.writeFileSync(path.join(process.cwd(), 'assets', 'logo.svg'), svgContent, 'utf-8');
+fs.writeFileSync(path.join(process.cwd(), 'assets', 'logo.png'), pngBuffer);
+
+console.log('Successfully generated refined assets/logo.svg and rendered assets/logo.png (1024x1024)');

@@ -7,6 +7,8 @@
     <a href="https://www.npmjs.com/package/pg-lockguard"><img src="https://img.shields.io/npm/v/pg-lockguard?style=flat-square&color=blue" alt="npm version" /></a>
     <a href="https://github.com/alexandrmotologa/pg-lockguard/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" /></a>
   </p>
+  <br />
+  <img src="docs/images/pg-lockguard-demo.gif" alt="PG Lockguard Interactive Demo" width="900" />
 </div>
 
 ---
@@ -16,6 +18,31 @@
 In production PostgreSQL systems, executing standard DDL migrations often acquires heavy table locks such as `ACCESS EXCLUSIVE` or `SHARE`. These lock levels conflict with regular application traffic (`SELECT`, `INSERT`, `UPDATE`, `DELETE`). A single unindexed foreign key or non-concurrent index build can queue behind active queries, causing connection pool exhaustion and application timeouts.
 
 `pg-lockguard` is a static analysis CLI and CI linter for SQL migration scripts. It parses SQL queries using the official PostgreSQL parser compiled to WebAssembly, inspects lock acquisition levels, and flags dangerous operations before they reach production databases. When a violation occurs, the tool generates safe, multi-step migration recipes.
+
+---
+
+## Terminal preview & screenshots
+
+### 1. Static lock analysis & zero-downtime recipe generation
+Detects blocking lock hazards, displays codeframes with exact statement positions, and suggests multi-step zero-downtime execution recipes.
+
+<p align="center">
+  <img src="docs/images/screenshot_lint.png" alt="PG Lockguard Lint with Explain" width="900" />
+</p>
+
+### 2. Automated migration remediation (`pg-lockguard fix`)
+Automatically injects missing `lock_timeout` statements, converts standard index creations to `CONCURRENTLY IF NOT EXISTS`, and attaches `NOT VALID` to constraint additions.
+
+<p align="center">
+  <img src="docs/images/screenshot_fix.png" alt="PG Lockguard Auto-Fix Engine" width="900" />
+</p>
+
+### 3. Live database table statistics & lock risk estimator
+Connects to live PostgreSQL databases to evaluate target table volume (`pg_class.reltuples` and `pg_total_relation_size`) and estimate lock acquisition hold times under concurrent production traffic.
+
+<p align="center">
+  <img src="docs/images/screenshot_estimate.png" alt="PG Lockguard Live Risk Estimator" width="900" />
+</p>
 
 ---
 
