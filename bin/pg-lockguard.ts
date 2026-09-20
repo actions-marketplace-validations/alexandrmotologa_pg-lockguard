@@ -42,6 +42,7 @@ program
   .option('--enforce-lock-timeout', 'Enforce SET lock_timeout at top of file', true)
   .option('--no-enforce-lock-timeout', 'Disable SET lock_timeout enforcement')
   .option('--ignore-rule <rules...>', 'Comma-separated rule IDs to ignore (e.g. PG001,PG004)')
+  .option('--ignore-rules <rules...>', 'Alias for --ignore-rule')
   .option('--config <path>', 'Path to custom configuration file')
   .option('--explain', 'Print safe zero-downtime multi-step recipes for detected violations', false)
   .option('--fail-on-warning', 'Exit with code 1 if warnings are found', false)
@@ -63,10 +64,11 @@ program
       const enforceLockTimeout = options.enforceLockTimeout !== undefined ? options.enforceLockTimeout : baseConfig.enforceLockTimeout;
 
       let ignoreRules = [...baseConfig.ignoreRules];
-      if (options.ignoreRule) {
-        const cliRules = Array.isArray(options.ignoreRule)
-          ? options.ignoreRule.flatMap((r: string) => r.split(',')).map((r: string) => r.trim())
-          : String(options.ignoreRule).split(',').map((r) => r.trim());
+      const rawCliRules = options.ignoreRule || options.ignoreRules;
+      if (rawCliRules) {
+        const cliRules = Array.isArray(rawCliRules)
+          ? rawCliRules.flatMap((r: string) => r.split(',')).map((r: string) => r.trim().toUpperCase())
+          : String(rawCliRules).split(',').map((r) => r.trim().toUpperCase());
         ignoreRules = [...ignoreRules, ...cliRules];
       }
 
@@ -382,4 +384,10 @@ program
     console.log(`Created configuration file at ${target}`);
   });
 
-program.parse(process.argv);
+// If invoked with no arguments, display help cleanly and exit 0
+if (process.argv.length <= 2) {
+  program.outputHelp();
+  process.exitCode = 0;
+} else {
+  program.parse(process.argv);
+}

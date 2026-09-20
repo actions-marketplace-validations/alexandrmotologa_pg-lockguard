@@ -83,8 +83,11 @@ export class MigrationLinter {
 
     // Wire up rules
     for (const rule of this.rules) {
-      // Check if rule is globally ignored
-      if (this.config.ignoreRules.includes(rule.id) || this.config.ignoreRules.includes(rule.name)) {
+      // Check if rule is globally ignored (case-insensitive)
+      const isIgnored = this.config.ignoreRules.some(
+        (r) => r.toUpperCase() === rule.id.toUpperCase() || r.toLowerCase() === rule.name.toLowerCase()
+      );
+      if (isIgnored) {
         continue;
       }
 
