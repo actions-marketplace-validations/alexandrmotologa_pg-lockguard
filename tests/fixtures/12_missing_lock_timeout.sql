@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY idx_t ON t (c);

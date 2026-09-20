@@ -1,0 +1,8 @@
+tests/
+.github/
+docs/
+scratch/
+*.log
+.gitignore
+tsconfig.json
+vitest.config.ts

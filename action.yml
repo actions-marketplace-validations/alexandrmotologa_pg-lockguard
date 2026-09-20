@@ -1,0 +1,61 @@
+name: 'PG Lockguard'
+description: 'Zero-downtime PostgreSQL DDL lock analyzer and migration linter'
+author: 'Alexandr Motologa'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Glob or file paths to SQL migration files'
+    required: false
+    default: 'migrations/**/*.sql'
+  pg-version:
+    description: 'Target PostgreSQL major version (11, 12, 13, 14, 15, 16, 17)'
+    required: false
+    default: '16'
+  max-lock-level:
+    description: 'Maximum allowable lock level before flagging error (ROW_EXCLUSIVE, SHARE, ACCESS_EXCLUSIVE)'
+    required: false
+    default: 'SHARE'
+  enforce-lock-timeout:
+    description: 'Require SET lock_timeout statement at the top of migration files'
+    required: false
+    default: 'true'
+  sarif-file:
+    description: 'Optional path to emit SARIF v2.1.0 report for GitHub Security scanning'
+    required: false
+    default: 'pg-lockguard.sarif'
+  fail-on-warning:
+    description: 'Fail the action if any warning-level violations are detected'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install pg-lockguard
+      shell: bash
+      run: |
+        npm install -g pg-lockguard@latest || npm install -g ${{ github.action_path }}
+
+    - name: Run pg-lockguard (Workflow Annotations)
+      shell: bash
+      run: |
+        pg-lockguard lint "${{ inputs.path }}" \
+          --pg-version "${{ inputs.pg-version }}" \
+          --max-lock-level "${{ inputs.max-lock-level }}" \
+          --format github
+
+    - name: Generate SARIF Security Report
+      if: always() && inputs.sarif-file != ''
+      shell: bash
+      run: |
+        pg-lockguard lint "${{ inputs.path }}" \
+          --pg-version "${{ inputs.pg-version }}" \
+          --format sarif > "${{ inputs.sarif-file }}" || true

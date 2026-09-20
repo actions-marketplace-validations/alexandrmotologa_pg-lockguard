@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/alexandrmotologa/pg-lockguard/main/schema.json",
+  "pgVersion": 16,
+  "maxLockLevel": "SHARE",
+  "enforceLockTimeout": true,
+  "ignoreRules": [],
+  "rules": {
+    "PG006": {
+      "severity": "warning"
+    },
+    "PG011": {
+      "severity": "warning"
+    },
+    "PG012": {
+      "severity": "warning"
+    }
+  },
+  "include": [
+    "migrations/**/*.sql",
+    "db/migrations/**/*.sql"
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**"
+  ]
+}

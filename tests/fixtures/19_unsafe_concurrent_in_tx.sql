@@ -1,0 +1,3 @@
+BEGIN;
+CREATE INDEX CONCURRENTLY idx_users ON users (id);
+COMMIT;

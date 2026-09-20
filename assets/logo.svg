@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow for Squircle -->
+    <filter id="squircleShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#0f172a" flood-opacity="0.08"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.04"/>
+    </filter>
+
+    <!-- Armor Plate Linear Gradients -->
+    <linearGradient id="slateGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <linearGradient id="slateGradMid" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+
+    <linearGradient id="steelGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+
+    <linearGradient id="titaniumHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+
+    <!-- Guardian Cyan Optical Glow -->
+    <linearGradient id="opticCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="shieldAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Luxury Squircle Container -->
+  <rect x="50" y="50" width="900" height="900" rx="220" fill="url(#bgGrad)" filter="url(#squircleShadow)" stroke="#e2e8f0" stroke-width="4"/>
+
+  <!-- 2. Subdued Inner Concentric Ring -->
+  <rect x="80" y="80" width="840" height="840" rx="190" fill="none" stroke="#f1f5f9" stroke-width="2"/>
+
+  <!-- 3. Heraldic Sentry Base Shield (Underlying Lock Guard Armor) -->
+  <path d="M 500 160 L 760 270 L 730 630 C 710 740 500 840 500 840 C 500 840 290 740 270 630 L 240 270 Z"
+        fill="#0f172a" opacity="0.04"/>
+
+  <!-- 4. Watertight Solid Mastiff Silhouette Base -->
+  <path d="M 500 190 
+           L 620 220 L 710 320 L 680 430 L 720 540 L 670 710 L 590 780 L 500 810 
+           L 410 780 L 330 710 L 280 540 L 320 430 L 290 320 L 380 220 Z"
+        fill="#0f172a"/>
+
+  <!-- 5. Low-Poly Symmetrical Armored Mastiff Facets -->
+
+  <!-- Cranial Crest & Brow Dome -->
+  <polygon points="500,200 440,260 500,310" fill="#334155"/>
+  <polygon points="500,200 560,260 500,310" fill="#475569"/>
+  <polygon points="500,200 390,230 440,260" fill="#1e293b"/>
+  <polygon points="500,200 610,230 560,260" fill="#334155"/>
+
+  <!-- Erect Armored Ears (Alert Vigilance) -->
+  <!-- Left Ear -->
+  <polygon points="390,230 330,170 360,290" fill="#1e293b"/>
+  <polygon points="360,290 330,170 420,270" fill="#334155"/>
+  <polygon points="330,170 290,280 360,290" fill="#0f172a"/>
+
+  <!-- Right Ear -->
+  <polygon points="610,230 670,170 640,290" fill="#334155"/>
+  <polygon points="640,290 670,170 580,270" fill="#475569"/>
+  <polygon points="670,170 710,280 640,290" fill="#1e293b"/>
+
+  <!-- Forehead Plates & Center Keystone -->
+  <polygon points="500,310 430,340 500,380" fill="#475569"/>
+  <polygon points="500,310 570,340 500,380" fill="#64748b"/>
+  <polygon points="440,260 430,340 500,310" fill="#334155"/>
+  <polygon points="560,260 570,340 500,310" fill="#475569"/>
+
+  <!-- Upper Cheekbones (Zygomatic Arches) -->
+  <polygon points="430,340 330,340 380,410" fill="#1e293b"/>
+  <polygon points="570,340 670,340 620,410" fill="#334155"/>
+  <polygon points="440,260 360,290 330,340" fill="#0f172a"/>
+  <polygon points="560,260 640,290 670,340" fill="#1e293b"/>
+
+  <!-- Titanium Brow Plates & Shield Visor -->
+  <polygon points="430,340 500,380 430,420" fill="#64748b"/>
+  <polygon points="570,340 500,380 570,420" fill="#94a3b8"/>
+  <polygon points="430,340 380,410 430,420" fill="#475569"/>
+  <polygon points="570,340 620,410 570,420" fill="#64748b"/>
+
+  <!-- Sentry Optics (Focused Almond Guardian Eyes) -->
+  <!-- Left Eye Socket & Cyan Iris -->
+  <polygon points="430,420 380,410 400,450" fill="#0f172a"/>
+  <polygon points="430,420 400,450 440,460" fill="url(#opticCyan)"/>
+  <polygon points="440,460 415,445 435,435" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Right Eye Socket & Cyan Iris -->
+  <polygon points="570,420 620,410 600,450" fill="#1e293b"/>
+  <polygon points="570,420 600,450 560,460" fill="url(#opticCyan)"/>
+  <polygon points="560,460 585,445 565,435" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Snout Bridge & Center Pillar (Impenetrable Column) -->
+  <polygon points="500,380 460,450 500,520" fill="#475569"/>
+  <polygon points="500,380 540,450 500,520" fill="#64748b"/>
+  <polygon points="500,380 430,420 460,450" fill="#334155"/>
+  <polygon points="500,380 570,420 540,450" fill="#475569"/>
+
+  <!-- Robust Mastiff Muzzle & Jowls -->
+  <polygon points="460,450 400,480 430,550" fill="#1e293b"/>
+  <polygon points="540,450 600,480 570,550" fill="#334155"/>
+  <polygon points="460,450 430,550 500,520" fill="#334155"/>
+  <polygon points="540,450 570,550 500,520" fill="#475569"/>
+
+  <!-- Nose Pad (Matte Obsidian Keystone) -->
+  <polygon points="500,520 465,555 500,580" fill="#0f172a"/>
+  <polygon points="500,520 535,555 500,580" fill="#1e293b"/>
+  <polygon points="465,555 430,550 460,590" fill="#0f172a"/>
+  <polygon points="535,555 570,550 540,590" fill="#1e293b"/>
+
+  <!-- Lateral Whisker Flanges (Titanium Silver Tone, Never Buck-Teeth) -->
+  <polygon points="460,590 380,570 410,640" fill="#64748b"/>
+  <polygon points="540,590 620,570 590,640" fill="#94a3b8"/>
+  <polygon points="465,555 460,590 500,620" fill="#1e293b"/>
+  <polygon points="535,555 540,590 500,620" fill="#334155"/>
+
+  <!-- Heavy Chin & Mandible Plates -->
+  <polygon points="500,580 460,590 500,640" fill="#0f172a"/>
+  <polygon points="500,580 540,590 500,640" fill="#1e293b"/>
+  <polygon points="500,640 430,655 470,710" fill="#1e293b"/>
+  <polygon points="500,640 570,655 530,710" fill="#334155"/>
+  <polygon points="500,640 470,710 500,750" fill="#334155"/>
+  <polygon points="500,640 530,710 500,750" fill="#475569"/>
+
+  <!-- Neck & Collar Armor Plate (Lockguard Gorget) -->
+  <!-- Center Gorget Shield -->
+  <polygon points="500,750 430,760 500,810" fill="#1d4ed8"/>
+  <polygon points="500,750 570,760 500,810" fill="#2563eb"/>
+  <polygon points="470,710 410,740 430,760" fill="#1e293b"/>
+  <polygon points="530,710 590,740 570,760" fill="#334155"/>
+
+  <!-- Lateral Neck Flanges -->
+  <polygon points="410,640 330,610 360,700" fill="#0f172a"/>
+  <polygon points="590,640 670,610 640,700" fill="#1e293b"/>
+  <polygon points="410,640 360,700 430,730" fill="#1e293b"/>
+  <polygon points="590,640 640,700 570,730" fill="#334155"/>
+  <polygon points="430,730 360,700 410,780" fill="#0f172a"/>
+  <polygon points="570,730 640,700 590,780" fill="#1e293b"/>
+
+  <!-- Subtle Subtle Collar Rivets (Stainless Steel Fasteners) -->
+  <circle cx="435" cy="760" r="5" fill="#e2e8f0"/>
+  <circle cx="565" cy="760" r="5" fill="#e2e8f0"/>
+  <circle cx="500" cy="780" r="6" fill="#38bdf8"/>
+</svg>
