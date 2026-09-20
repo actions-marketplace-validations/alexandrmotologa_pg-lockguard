@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 860" width="1120" height="860">
+  <defs>
+    <!-- Background Canvas Gradient -->
+    <linearGradient id="canvasBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <!-- Terminal Window Drop Shadow -->
+    <filter id="termShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="28" stdDeviation="36" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+
+    <linearGradient id="badgeRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+
+    <linearGradient id="badgeYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Presentation Canvas -->
+  <rect x="0" y="0" width="1120" height="860" fill="url(#canvasBg)"/>
+
+  <!-- Subtle Blueprint Grid Pattern in Canvas Background -->
+  <g stroke="#1e293b" stroke-width="1" opacity="0.25">
+    <line x1="0" y1="100" x2="1120" y2="100"/>
+    <line x1="0" y1="200" x2="1120" y2="200"/>
+    <line x1="0" y1="300" x2="1120" y2="300"/>
+    <line x1="0" y1="400" x2="1120" y2="400"/>
+    <line x1="0" y1="500" x2="1120" y2="500"/>
+    <line x1="0" y1="600" x2="1120" y2="600"/>
+    <line x1="0" y1="700" x2="1120" y2="700"/>
+    <line x1="200" y1="0" x2="200" y2="860"/>
+    <line x1="400" y1="0" x2="400" y2="860"/>
+    <line x1="600" y1="0" x2="600" y2="860"/>
+    <line x1="800" y1="0" x2="800" y2="860"/>
+    <line x1="1000" y1="0" x2="1000" y2="860"/>
+  </g>
+
+  <!-- Terminal Window Shell -->
+  <g filter="url(#termShadow)">
+    <rect x="50" y="45" width="1020" height="770" rx="14" fill="#090d16" stroke="#1e293b" stroke-width="1.5"/>
+
+    <!-- Terminal Titlebar -->
+    <path d="M 50 45 L 1070 45 A 14 14 0 0 1 1070 85 L 50 85 A 0 0 0 0 1 50 45 Z" fill="#0f172a"/>
+    <line x1="50" y1="85" x2="1070" y2="85" stroke="#1e293b" stroke-width="1"/>
+
+    <!-- Window Control Buttons (Mac Style) -->
+    <circle cx="76" cy="65" r="6" fill="#ff5f56"/>
+    <circle cx="96" cy="65" r="6" fill="#ffbd2e"/>
+    <circle cx="116" cy="65" r="6" fill="#27c93f"/>
+
+    <!-- Window Title -->
+    <text x="560" y="69" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="500" fill="#94a3b8">Terminal — pg-lockguard lint "migrations/**/*.sql" --explain</text>
+  </g>
+
+  <!-- Terminal Body Content (Monospace Font) -->
+  <g font-family="'JetBrains Mono', 'Fira Code', Menlo, Monaco, 'Courier New', monospace" font-size="14" xml:space="preserve">
+    <!-- Prompt Line -->
+    <text x="85" y="125">
+      <tspan fill="#10b981" font-weight="bold">$</tspan>
+      <tspan fill="#f8fafc"> pg-lockguard lint "migrations/20260920_orders.sql" --explain</tspan>
+    </text>
+
+    <!-- Header Banner -->
+    <text x="85" y="160" fill="#3b82f6" font-weight="bold">  PG Lockguard</text>
+    <text x="215" y="160" fill="#64748b">— PostgreSQL Zero-Downtime Migration Linter</text>
+
+    <!-- Target File -->
+    <text x="85" y="195" fill="#f8fafc" font-weight="bold" text-decoration="underline">  migrations/20260920_orders.sql</text>
+
+    <!-- Violation 1: PG001 -->
+    <text x="85" y="225">
+      <tspan fill="#ef4444" font-weight="bold">  ✖ ERROR </tspan>
+      <tspan fill="#ffffff" font-weight="bold">PG001</tspan>
+      <tspan fill="#38bdf8"> (create-index-concurrently) </tspan>
+      <tspan fill="#f59e0b" font-weight="bold">[SHARE]</tspan>
+    </text>
+    <text x="105" y="248" fill="#64748b">at migrations/20260920_orders.sql:4:1</text>
+    <text x="105" y="270" fill="#e2e8f0">Building index 'idx_orders_customer' without CONCURRENTLY blocks all concurrent writes.</text>
+    
+    <text x="105" y="295" fill="#64748b">4 | </text>
+    <text x="135" y="295" fill="#f87171">CREATE INDEX idx_orders_customer ON orders (customer_id);</text>
+    <text x="105" y="312" fill="#64748b">  | </text>
+    <text x="135" y="312" fill="#ef4444">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</text>
+
+    <!-- Recipe for PG001 -->
+    <text x="105" y="338" fill="#10b981" font-weight="bold">Safe Multi-Step Migration Recipe:</text>
+    <text x="120" y="358" fill="#34d399">-- Step 1: Create the index concurrently outside an explicit transaction block</text>
+    <text x="120" y="378" fill="#34d399">CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_customer ON orders (customer_id);</text>
+
+    <!-- Violation 2: PG004 -->
+    <text x="85" y="420">
+      <tspan fill="#ef4444" font-weight="bold">  ✖ ERROR </tspan>
+      <tspan fill="#ffffff" font-weight="bold">PG004</tspan>
+      <tspan fill="#38bdf8"> (add-foreign-key-not-valid) </tspan>
+      <tspan fill="#fb923c" font-weight="bold">[SHARE_ROW_EXCLUSIVE]</tspan>
+    </text>
+    <text x="105" y="443" fill="#64748b">at migrations/20260920_orders.sql:9:1</text>
+    <text x="105" y="465" fill="#e2e8f0">Adding FOREIGN KEY 'fk_orders_customer' without NOT VALID blocks concurrent writes during scan.</text>
+
+    <text x="105" y="490" fill="#64748b">9 | </text>
+    <text x="135" y="490" fill="#f87171">ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id);</text>
+    <text x="105" y="507" fill="#64748b">  | </text>
+    <text x="135" y="507" fill="#ef4444">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</text>
+
+    <!-- Recipe for PG004 -->
+    <text x="105" y="533" fill="#10b981" font-weight="bold">Safe Multi-Step Migration Recipe:</text>
+    <text x="120" y="553" fill="#34d399">-- Step 1: Add foreign key with NOT VALID (instant metadata lock, no table scan)</text>
+    <text x="120" y="573" fill="#34d399">ALTER TABLE orders ADD CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) REFERENCES customers(id) NOT VALID;</text>
+    <text x="120" y="593" fill="#34d399">-- Step 2: Validate constraint in a separate transaction (reads and writes remain active)</text>
+    <text x="120" y="613" fill="#34d399">ALTER TABLE orders VALIDATE CONSTRAINT fk_orders_customer;</text>
+
+    <!-- Violation 3: PG006 -->
+    <text x="85" y="655">
+      <tspan fill="#f59e0b" font-weight="bold">  ⚠ WARN  </tspan>
+      <tspan fill="#ffffff" font-weight="bold">PG006</tspan>
+      <tspan fill="#38bdf8"> (require-lock-timeout) </tspan>
+      <tspan fill="#f87171" font-weight="bold">[ACCESS_EXCLUSIVE]</tspan>
+    </text>
+    <text x="105" y="678" fill="#64748b">at migrations/20260920_orders.sql:1:1</text>
+    <text x="105" y="700" fill="#e2e8f0">Migration file does not configure 'SET lock_timeout'. Queued DDL can starve connection pools.</text>
+
+    <!-- Horizontal Divider -->
+    <line x1="85" y1="730" x2="1035" y2="730" stroke="#334155" stroke-width="1"/>
+
+    <!-- Bottom Summary -->
+    <text x="85" y="760">
+      <tspan fill="#ef4444" font-weight="bold">  Failed: </tspan>
+      <tspan fill="#f8fafc">2 error(s), 1 warning(s) across 1/1 files (34ms).</tspan>
+    </text>
+  </g>
+</svg>
