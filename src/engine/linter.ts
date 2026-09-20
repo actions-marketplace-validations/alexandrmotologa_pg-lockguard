@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import { parseSql, type ParsedFile } from '../ast/parser.js';
 import { ASTWalker, type ASTVisitorContext } from '../ast/visitor.js';
+import { parseDirectives } from '../ast/directives.js';
 import { getAllRules, BaseRule, type RuleViolation, type RuleSeverity } from '../rules/index.js';
 import { isLockExceeded } from './lock_matrix.js';
 import type { Config } from '../config.js';
@@ -37,6 +38,18 @@ export class MigrationLinter {
    */
   public lintString(sql: string, filename = 'migration.sql'): FileLintResult {
     const start = performance.now();
+    const directives = parseDirectives(sql);
+
+    if (directives.ignoreFile) {
+      return {
+        file: filename,
+        violations: [],
+        hasErrors: false,
+        hasWarnings: false,
+        durationMs: Math.round(performance.now() - start),
+      };
+    }
+
     const violations: RuleViolation[] = [];
 
     let parsed: ParsedFile;
@@ -94,7 +107,13 @@ export class MigrationLinter {
             ast: astCtx,
             pgVersion: this.config.pgVersion,
             options: ruleCfg.options || {},
+            isTableNewInMigration: astCtx.isTableNewInMigration,
             report: (v) => {
+              // Check inline comment directives
+              if (directives.isRuleDisabled(rule.id, v.line) || directives.isRuleDisabled(rule.name, v.line)) {
+                return;
+              }
+
               // Apply max-lock-level filtering: if lock level is below maxLockLevel threshold, downgrade or suppress
               const lockExceeded = isLockExceeded(v.lockLevel, this.config.maxLockLevel);
               const finalSeverity = !lockExceeded && severity === 'error' ? 'warning' : severity;

@@ -16,6 +16,11 @@ export class Pg004AddForeignKeyRule extends BaseRule {
 
     const table = node.relation?.relname || 'target_table';
 
+    // If source table is newly created in this migration, scan is instantaneous on 0 rows
+    if (context.isTableNewInMigration(table)) {
+      return;
+    }
+
     for (const cmdItem of node.cmds) {
       const cmd = cmdItem.alterTableCmd;
       if (!cmd || cmd.subtype !== 'AT_AddConstraint') continue;

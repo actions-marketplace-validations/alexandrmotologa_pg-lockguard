@@ -1,5 +1,5 @@
 import type { StatementNode, SourceLocation } from './types.js';
-import { offsetToLocation, extractSnippet, type ParsedFile } from './parser.js';
+import { offsetToLocation, extractSnippet, findStatementStart, type ParsedFile } from './parser.js';
 
 export interface ASTVisitorContext {
   file: string;
@@ -12,6 +12,8 @@ export interface ASTVisitorContext {
   location: SourceLocation;
   snippet: string;
   isInTransaction: boolean;
+  createdTables: Set<string>;
+  isTableNewInMigration: (tableName: string) => boolean;
 }
 
 export type NodeHandler = (context: ASTVisitorContext) => void;
@@ -28,6 +30,20 @@ export class ASTWalker {
 
   public walk(file: string, parsed: ParsedFile): void {
     let inTransaction = false;
+    const createdTables = new Set<string>();
+
+    const isTableNewInMigration = (tableName: string): boolean => {
+      if (!tableName) return false;
+      return createdTables.has(tableName.toLowerCase());
+    };
+
+    // Pre-pass or streaming pass: first pass records all created tables in this file
+    for (const rawStmt of parsed.stmts) {
+      const stmtObj = rawStmt.stmt;
+      if (stmtObj?.createStmt?.relation?.relname) {
+        createdTables.add(stmtObj.createStmt.relation.relname.toLowerCase());
+      }
+    }
 
     for (let i = 0; i < parsed.stmts.length; i++) {
       const rawStmt = parsed.stmts[i]!;
@@ -36,7 +52,8 @@ export class ASTWalker {
 
       const offset = rawStmt.stmtLocation ?? 0;
       const length = rawStmt.stmtLen ?? 0;
-      const location = offsetToLocation(offset, parsed.lineOffsets);
+      const realOffset = findStatementStart(parsed.content, offset);
+      const location = offsetToLocation(realOffset, parsed.lineOffsets);
       const snippet = extractSnippet(parsed.content, offset, length);
 
       const keys = Object.keys(stmtObj);
@@ -64,6 +81,8 @@ export class ASTWalker {
           location,
           snippet,
           isInTransaction: inTransaction,
+          createdTables,
+          isTableNewInMigration,
         };
 
         const list = this.handlers.get(key);

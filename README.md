@@ -15,7 +15,7 @@
 
 In production PostgreSQL systems, executing standard DDL migrations often acquires heavy table locks such as `ACCESS EXCLUSIVE` or `SHARE`. These lock levels conflict with regular application traffic (`SELECT`, `INSERT`, `UPDATE`, `DELETE`). A single unindexed foreign key or non-concurrent index build can queue behind active queries, causing connection pool exhaustion and application timeouts.
 
-`pg-lockguard` is a static analysis command-line tool and CI linter for SQL migration scripts. It parses SQL queries using the official PostgreSQL parser compiled to WebAssembly, inspects lock acquisition levels, and flags dangerous operations before they reach production databases. When a violation occurs, the tool generates safe, multi-step migration recipes.
+`pg-lockguard` is a static analysis CLI and CI linter for SQL migration scripts. It parses SQL queries using the official PostgreSQL parser compiled to WebAssembly, inspects lock acquisition levels, and flags dangerous operations before they reach production databases. When a violation occurs, the tool generates safe, multi-step migration recipes.
 
 ---
 
@@ -39,15 +39,88 @@ Run `pg-lockguard` against your migration directory:
 # Lint all SQL files in the migrations directory
 pg-lockguard lint "migrations/**/*.sql"
 
+# Auto-detect framework (Prisma, Drizzle, Supabase, Flyway, Alembic)
+pg-lockguard lint --framework auto
+
 # Inspect migration with zero-downtime refactoring recipes
 pg-lockguard lint "migrations/**/*.sql" --explain
+
+# Automatically remediate safe lock issues (adds CONCURRENTLY, NOT VALID, lock_timeout)
+pg-lockguard fix "migrations/**/*.sql"
 
 # Output GitHub Actions workflow annotations in CI
 pg-lockguard lint "migrations/**/*.sql" --format github
 
+# Format as GitHub PR markdown comment
+pg-lockguard lint "migrations/**/*.sql" --format markdown
+
 # Emit SARIF v2.1.0 report for the GitHub Security tab
 pg-lockguard lint "migrations/**/*.sql" --format sarif > results.sarif
 ```
+
+---
+
+## Core features
+
+### 1. Context awareness (no false alarms on new tables)
+If a table is created with `CREATE TABLE` within the same migration file, subsequent operations on that table (such as `ADD COLUMN ... NOT NULL`, `ADD CONSTRAINT ... FOREIGN KEY`, or `CREATE INDEX`) will not trigger blocking lock violations. Because the table was created in the current transaction, it has zero production rows and no concurrent readers or writers.
+
+### 2. Inline SQL comment directives
+Suppress specific rules for legacy or edge-case migrations directly in your SQL files:
+
+```sql
+-- Disable a rule for the next statement:
+-- pg-lockguard-disable-next-line PG001
+CREATE INDEX idx_legacy ON legacy_archive (created_at);
+
+-- Disable and re-enable a block:
+-- pg-lockguard-disable PG004,PG006
+ALTER TABLE internal_audit ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id);
+-- pg-lockguard-enable PG004,PG006
+
+-- Ignore an entire file:
+-- pg-lockguard-ignore-file
+```
+
+### 3. Automated migration fix engine
+Run `pg-lockguard fix` to rewrite safe lock patterns automatically:
+- Inserts `SET lock_timeout = '2s';` at the top of migration files lacking a timeout.
+- Rewrites `CREATE INDEX` to `CREATE INDEX CONCURRENTLY IF NOT EXISTS`.
+- Rewrites `DROP INDEX` to `DROP INDEX CONCURRENTLY IF EXISTS`.
+- Appends `NOT VALID` to `ADD CONSTRAINT ... FOREIGN KEY` and `ADD CONSTRAINT ... CHECK`.
+
+```bash
+# Preview changes without modifying files
+pg-lockguard fix "migrations/**/*.sql" --dry-run
+
+# Apply fixes directly
+pg-lockguard fix "migrations/**/*.sql"
+```
+
+### 4. ORM and framework auto-detection
+Pass `--framework auto` (or let the CLI detect your project root):
+- **Prisma**: detects `prisma/schema.prisma` and targets `prisma/migrations/**/*.sql`.
+- **Drizzle**: detects `drizzle.config.ts` and targets `drizzle/**/*.sql`.
+- **Supabase**: detects `supabase/migrations` and targets `supabase/migrations/**/*.sql`.
+- **Flyway**: detects `flyway.conf` and targets `db/migration/V*__*.sql`.
+- **Alembic**: detects `alembic.ini` and targets `alembic/versions/*.sql`.
+- **TypeORM**: detects `ormconfig.json` and targets `src/migration/**/*.sql`.
+
+### 5. Git pre-commit hook installer
+Install a zero-configuration Git hook that verifies staged SQL migrations before commit:
+
+```bash
+pg-lockguard install-hook
+```
+If Husky is present, the hook is configured in `.husky/pre-commit`. Otherwise, it installs directly to `.git/hooks/pre-commit`.
+
+### 6. Live database table risk estimator
+Connect to a staging or production read-replica to query real table statistics (`reltuples` and `pg_total_relation_size`):
+
+```bash
+pg-lockguard estimate "migrations/**/*.sql" --db "postgresql://user:pass@localhost:5432/dbname"
+```
+The estimator evaluates live table row count, disk volume, and estimates lock hold duration under concurrent application traffic.
 
 ---
 
@@ -112,32 +185,36 @@ ALTER TABLE orders VALIDATE CONSTRAINT fk_orders_user;
 Usage: pg-lockguard [options] [command]
 
 Commands:
-  lint [options] [patterns...]  Lint SQL migration files for lock safety hazards
-  explain <ruleId>              Display lock impact and zero-downtime recipe for a rule
-  init                          Generate a starter .pg-lockguard.json configuration file
+  lint [options] [patterns...]      Lint SQL migration files for lock safety hazards
+  fix [options] [patterns...]       Automatically remediate safe lock issues
+  install-hook                      Install Git pre-commit hook in .husky or .git/hooks
+  estimate [options] [patterns...]  Estimate live table sizes and lock risk holding times
+  explain <ruleId>                  Display lock impact and zero-downtime recipe for a rule
+  init                              Generate a starter .pg-lockguard.json configuration file
 
 Options:
-  --pg-version <version>        Target Postgres version (11, 12, 13, 14, 15, 16, 17) [default: 16]
-  --max-lock-level <level>      Fail threshold (ROW_EXCLUSIVE, SHARE, ACCESS_EXCLUSIVE) [default: SHARE]
-  --format <format>             pretty, json, github, sarif [default: pretty]
-  --enforce-lock-timeout        Require 'SET lock_timeout' in migration files [default: true]
-  --no-enforce-lock-timeout     Disable lock_timeout verification
-  --ignore-rule <rules...>      Rule IDs to ignore (e.g. PG001,PG004)
-  --config <path>               Path to custom configuration file
-  --explain                     Print safe refactoring recipes for all violations
-  --fail-on-warning             Exit with status code 1 if warnings are found
+  --pg-version <version>            Target Postgres version (11, 12, 13, 14, 15, 16, 17) [default: 16]
+  --max-lock-level <level>          Fail threshold (ROW_EXCLUSIVE, SHARE, ACCESS_EXCLUSIVE) [default: SHARE]
+  --format <format>                 pretty, json, github, sarif, markdown [default: pretty]
+  --framework <name>                auto, prisma, drizzle, supabase, flyway, alembic, typeorm, raw [default: auto]
+  --enforce-lock-timeout            Require 'SET lock_timeout' in migration files [default: true]
+  --no-enforce-lock-timeout         Disable lock_timeout verification
+  --ignore-rule <rules...>          Rule IDs to ignore (e.g. PG001,PG004)
+  --config <path>                   Path to custom configuration file
+  --explain                         Print safe refactoring recipes for all violations
+  --fail-on-warning                 Exit with status code 1 if warnings are found
 ```
 
 ### Exit codes
 - `0`: All migration files passed lock safety checks.
 - `1`: One or more violations exceeded the configured threshold.
-- `2`: Syntax error or file read failure.
+- `2`: Syntax error, file read failure, or configuration error.
 
 ---
 
 ## Configuration file (`.pg-lockguard.json`)
 
-You can generate a starter configuration file with:
+Generate a starter configuration file with:
 
 ```bash
 pg-lockguard init
@@ -184,6 +261,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -194,11 +272,17 @@ jobs:
       - name: Install pg-lockguard
         run: npm install -g pg-lockguard
 
-      - name: Lint Migration Locks
+      - name: Lint Migration Locks (GitHub Annotations)
         run: |
           pg-lockguard lint "migrations/**/*.sql" \
             --format github \
             --max-lock-level SHARE
+
+      - name: Generate PR Markdown Summary
+        if: always()
+        run: |
+          pg-lockguard lint "migrations/**/*.sql" \
+            --format markdown > migration-report.md || true
 
       - name: Generate SARIF Security Report
         if: always()

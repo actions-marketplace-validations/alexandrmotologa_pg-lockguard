@@ -28,6 +28,7 @@ export interface RuleContext {
   ast: ASTVisitorContext;
   pgVersion: PostgresVersion;
   options: RuleOptions;
+  isTableNewInMigration: (tableName: string) => boolean;
   report: (violation: Omit<RuleViolation, 'ruleId' | 'ruleName' | 'severity' | 'file'>) => void;
 }
 

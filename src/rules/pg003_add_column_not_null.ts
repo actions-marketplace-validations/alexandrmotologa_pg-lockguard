@@ -20,6 +20,11 @@ export class Pg003AddColumnNotNullRule extends BaseRule {
 
     const table = node.relation?.relname || 'target_table';
 
+    // If table was created in this migration, it is empty and safe to modify
+    if (context.isTableNewInMigration(table)) {
+      return;
+    }
+
     for (const cmdItem of node.cmds) {
       const cmd = cmdItem.alterTableCmd;
       if (!cmd || cmd.subtype !== 'AT_AddColumn') continue;

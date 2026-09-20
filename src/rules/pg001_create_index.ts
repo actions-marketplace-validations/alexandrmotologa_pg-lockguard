@@ -14,9 +14,15 @@ export class Pg001CreateIndexRule extends BaseRule {
     const node = context.ast.stmtBody;
     if (!node) return;
 
+    const table = node.relation?.relname || 'target_table';
+
+    // If table was created earlier in the same migration, concurrent traffic does not exist yet
+    if (context.isTableNewInMigration(table)) {
+      return;
+    }
+
     // Check if index creation is marked CONCURRENTLY
     if (!node.concurrent) {
-      const table = node.relation?.relname || 'target_table';
       const indexName = node.idxname || `idx_${table}`;
       const isUnique = Boolean(node.unique);
 

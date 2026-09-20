@@ -53,6 +53,31 @@ export function offsetToLocation(offset: number, lineOffsets: number[]): SourceL
 }
 
 /**
+ * Skips leading whitespace and SQL comments to find the actual start of the statement keyword.
+ */
+export function findStatementStart(content: string, rawOffset = 0): number {
+  let offset = Math.max(0, rawOffset);
+  while (offset < content.length) {
+    if (/\s/.test(content[offset]!)) {
+      offset++;
+      continue;
+    }
+    if (content.slice(offset, offset + 2) === '--') {
+      const nextNl = content.indexOf('\n', offset);
+      offset = nextNl === -1 ? content.length : nextNl + 1;
+      continue;
+    }
+    if (content.slice(offset, offset + 2) === '/*') {
+      const endComment = content.indexOf('*/', offset);
+      offset = endComment === -1 ? content.length : endComment + 2;
+      continue;
+    }
+    break;
+  }
+  return offset;
+}
+
+/**
  * Extracts a code snippet for a given statement from the original SQL content.
  */
 export function extractSnippet(
@@ -61,8 +86,10 @@ export function extractSnippet(
   length?: number
 ): string {
   if (startOffset === undefined) return '';
-  const len = length && length > 0 ? length : 100;
-  return content.slice(startOffset, startOffset + len).trim();
+  const realStart = findStatementStart(content, startOffset);
+  const consumed = realStart - startOffset;
+  const remainingLen = length && length > consumed ? length - consumed : 100;
+  return content.slice(realStart, realStart + remainingLen).trim();
 }
 
 /**
